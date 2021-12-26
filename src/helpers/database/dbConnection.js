@@ -1,9 +1,9 @@
 var mysql = require("mysql");
 var conn = mysql.createConnection({
-  host: "kratos.domainhizmetleri.com",
-  user: "nfteksti_anda",
-  password: "Cyber!3344",
-  database: "nfteksti_anda",
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "final_project",
 });
 
 try {
