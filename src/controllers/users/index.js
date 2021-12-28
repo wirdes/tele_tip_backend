@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const db = require("../../helpers/database/dbConnection");
+const { db } = require("../../helpers/database/dbConnection");
+const { isTokenIncluded } = require("../../helpers/tokens/tokenHelpers");
 
 const register = (req, res, next) => {
   db.query(
@@ -48,6 +49,7 @@ const register = (req, res, next) => {
   );
 };
 const login = (req, res, next) => {
+  const { JWT_SECRET, JWT_TIME } = process.env;
   db.query(
     `SELECT * FROM users WHERE email = ${db.escape(req.body.email)};`,
     (err, result) => {
@@ -77,13 +79,16 @@ const login = (req, res, next) => {
           }
           if (bResult) {
             const token = jwt.sign(
-              { id: result[0].id },
-              "the-super-strong-secrect",
-              { expiresIn: "10h" }
+              { id: result[0].id, email: result[0].email },
+              JWT_SECRET,
+              {
+                expiresIn: JWT_TIME,
+              }
             );
             db.query(
               `UPDATE users SET last_login = now() WHERE id = '${result[0].id}'`
             );
+
             return res.status(200).send({
               msg: "kayıt başarılı",
               success: true,
@@ -102,17 +107,15 @@ const login = (req, res, next) => {
 };
 
 const getUser = (req, res, next) => {
-  if (
-    !req.headers.authorization ||
-    !req.headers.authorization.startsWith("Bearer") ||
-    !req.headers.authorization.split(" ")[1]
-  ) {
-    return res.status(422).json({
-      message: "Lütfen giriş yapınız.",
-    });
+  const { JWT_SECRET } = process.env;
+  let control = isTokenIncluded(req);
+  if (control.err) {
+    res.status(400).send("Token çalışmıyor");
+    return;
   }
-  const theToken = req.headers.authorization.split(" ")[1];
-  const decoded = jwt.verify(theToken, "the-super-strong-secrect");
+
+  const decoded = jwt.verify(control.token, JWT_SECRET);
+
   db.query(
     "SELECT * FROM users where id=?",
     decoded.id,
@@ -128,20 +131,17 @@ const getUser = (req, res, next) => {
 };
 
 const uploadImage = (req, res, next) => {
-  if (
-    !req.headers.authorization ||
-    !req.headers.authorization.startsWith("Bearer") ||
-    !req.headers.authorization.split(" ")[1]
-  ) {
-    return res.status(422).json({
-      msg: "Lütfen giriş yapınız.",
-    });
+  const { JWT_SECRET } = process.env;
+  let control = isTokenIncluded(req);
+  if (control.err) {
+    res.status(400).send("Token çalışmıyor");
+    return;
   }
-  const theToken = req.headers.authorization.split(" ")[1];
-  const decoded = jwt.verify(theToken, "the-super-strong-secrect");
+
+  const decoded = jwt.verify(control.token, JWT_SECRET);
 
   if (!req.files || Object.keys(req.files).length === 0) {
-    res.status(400).send("No files were uploaded.");
+    res.status(400).send("Hiç Dosya bulunamadı");
     return;
   }
   const file = req.files.file;
@@ -165,24 +165,21 @@ const uploadImage = (req, res, next) => {
           msg: err,
         });
       }
-      db.query(
-        `SELECT * FROM users WHERE id=${decoded.id}`,
-        (err, result) => {
-          if (err) {
-            throw err;
-            return res.status(400).send({
-              success: false,
-              msg: err,
-            });
-          }
-          return res.status(200).send({
-            success: true,
-            user: result,
-            msg: "Resim başarıyla güncellendi",
-            token:theToken
+      db.query(`SELECT * FROM users WHERE id=${decoded.id}`, (err, result) => {
+        if (err) {
+          throw err;
+          return res.status(400).send({
+            success: false,
+            msg: err,
           });
         }
-      );
+        return res.status(200).send({
+          success: true,
+          user: result,
+          msg: "Resim başarıyla güncellendi",
+          token: theToken,
+        });
+      });
     }
   );
 };
