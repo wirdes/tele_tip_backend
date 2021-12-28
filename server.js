@@ -1,6 +1,6 @@
 const express = require("express");
 const dotenv = require("dotenv");
-const routers = require("./src/routers/routers");
+const routers = require("./src/routers");
 const cors = require("cors");
 const fileUpload = require("express-fileupload");
 
@@ -9,7 +9,6 @@ dotenv.config({
   path: "./config/env/config.env",
 });
 
-//connectDatabase();
 var corsOptions = {
   origin: "*",
   optionsSuccessStatus: 200,
