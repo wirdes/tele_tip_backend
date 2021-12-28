@@ -79,7 +79,7 @@ const login = (req, res, next) => {
             const token = jwt.sign(
               { id: result[0].id },
               "the-super-strong-secrect",
-              { expiresIn: "1h" }
+              { expiresIn: "10h" }
             );
             db.query(
               `UPDATE users SET last_login = now() WHERE id = '${result[0].id}'`
@@ -165,10 +165,24 @@ const uploadImage = (req, res, next) => {
           msg: err,
         });
       }
-      return res.status(200).send({
-        success: true,
-        msg: "Resim başarıyla güncellendi",
-      });
+      db.query(
+        `SELECT * FROM users WHERE id=${decoded.id}`,
+        (err, result) => {
+          if (err) {
+            throw err;
+            return res.status(400).send({
+              success: false,
+              msg: err,
+            });
+          }
+          return res.status(200).send({
+            success: true,
+            user: result,
+            msg: "Resim başarıyla güncellendi",
+            token:theToken
+          });
+        }
+      );
     }
   );
 };
