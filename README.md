@@ -1,0 +1,3 @@
+# tele_tip_backend
+
+#MOBILE DEVELOPMENT FINAL PROJECT
