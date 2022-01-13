@@ -10,6 +10,10 @@ const {
   login,
   getUser,
   uploadImage,
+  getDoctor,
+  getDoctorA,
+  getDoctorB,
+  getMajorList,
 } = require("../controllers/users");
 
 router.get("/", (req, res) => {
@@ -27,5 +31,9 @@ router.post(
 router.post("/login", passwordCheck, emailCheck, login);
 router.post("/getUser", getUser);
 router.post("/uploadImage", uploadImage);
+router.get("/getDoctor/:uname", getDoctor);
+router.get("/getDoctorA/:id", getDoctorA);
+router.get("/getDoctorB/:id", getDoctorB);
+router.get("/getMajorList", getMajorList);
 
 module.exports = router;

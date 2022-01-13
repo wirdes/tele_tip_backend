@@ -177,16 +177,149 @@ const uploadImage = (req, res, next) => {
           success: true,
           user: result,
           msg: "Resim başarıyla güncellendi",
-          token: theToken,
+          token: control.token,
         });
       });
     }
   );
 };
 
+const getDoctor = (req, res, next) => {
+  const { uname } = req.params;
+
+  if (uname === undefined) {
+    return res.status(400).send({
+      success: false,
+      msg: "uname not null",
+    });
+  } else {
+    db.query(
+      `SELECT u.name, u.id, u.surname, u.image, m.science from users as u JOIN major_science as m on u.major = m.id  WHERE u.name like '${uname}%' and is_doctor = 1`,
+      (err, result) => {
+        if (err) {
+          throw err;
+          return res.status(400).send({
+            success: false,
+            msg: err,
+            body: [],
+          });
+        } else if (result.length <= 0) {
+          return res.status(400).send({
+            success: false,
+            msg: "Doctor Yok",
+            body: [],
+          });
+        }
+        return res.status(200).send({
+          success: true,
+          body: result,
+          msg: "Doctorlar geldi",
+        });
+      }
+    );
+  }
+};
+
+const getDoctorA = (req, res, next) => {
+  const { id } = req.params;
+  if (id === undefined) {
+    return res.status(400).send({
+      success: false,
+      msg: "uname not null",
+    });
+  } else {
+    db.query(
+      `SELECT u.name, u.id, u.surname, u.image, m.science from users as u JOIN major_science as m on u.major = m.id  WHERE u.profession like '%${id}%' and is_doctor = 1`,
+      (err, result) => {
+        if (err) {
+          throw err;
+          return res.status(400).send({
+            success: false,
+            msg: err,
+            body: [],
+          });
+        } else if (result.length <= 0) {
+          return res.status(400).send({
+            success: false,
+            msg: "Doctor Yok",
+            body: [],
+          });
+        }
+        return res.status(200).send({
+          success: true,
+          body: result,
+          msg: "Doctorlar geldi",
+        });
+      }
+    );
+  }
+};
+const getDoctorB = (req, res, next) => {
+  const { id } = req.params;
+
+  if (id === undefined) {
+    return res.status(400).send({
+      success: false,
+      msg: "id not null",
+    });
+  } else {
+    db.query(
+      `SELECT u.name, u.id, u.surname, u.image, m.science from users as u JOIN major_science as m on u.major = m.id  WHERE m.science = '${id}' and is_doctor = 1`,
+      (err, result) => {
+        if (err) {
+          throw err;
+          return res.status(400).send({
+            success: false,
+            msg: err,
+            body: [],
+          });
+        } else if (result.length <= 0) {
+          return res.status(400).send({
+            success: false,
+            msg: "Doctor Yok",
+            body: [],
+          });
+        }
+        return res.status(200).send({
+          success: true,
+          body: result,
+          msg: "Doctorlar geldi",
+        });
+      }
+    );
+  }
+};
+
+const getMajorList = (req, res, next) => {
+  db.query(`SELECT * from major_science`, (err, result) => {
+    if (err) {
+      throw err;
+      return res.status(400).send({
+        success: false,
+        msg: err,
+        body: [],
+      });
+    } else if (result.length <= 0) {
+      return res.status(400).send({
+        success: false,
+        msg: "Doctor Yok",
+        body: [],
+      });
+    }
+    return res.status(200).send({
+      success: true,
+      body: result,
+      msg: "Doctorlar geldi",
+    });
+  });
+};
 module.exports = {
   uploadImage,
   getUser,
   register,
   login,
+  getDoctor,
+  getDoctorA,
+  getDoctorB,
+  getMajorList,
 };
